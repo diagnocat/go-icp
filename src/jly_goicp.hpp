@@ -64,7 +64,6 @@ struct ROTNODE
 			return n1.w < n2.w;
 			//return n1.ub > n2.ub;
 	}
-	
 };
 
 struct TRANSNODE
@@ -127,6 +126,8 @@ public:
 	float trimFraction;
 	int inlierNum;
 	bool doTrim;
+	long long maxIters;
+	long long curIter;
 
 private:
 	//temp variables
@@ -136,7 +137,6 @@ private:
 	float * maxRotDisL;
 	POINT3D * pDataTemp;
 	POINT3D * pDataTempICP;
-	
 	ICP3D<float> icp3d;
 	float * M_icp;
 	float * D_icp;
@@ -211,6 +211,7 @@ GoICP::GoICP()
 	doTrim = true;
 	dt.SIZE = 1;
 	dt.expandFactor = 2.0;
+	maxIters = 1000;
 }
 
 std::vector<std::vector<double>> GoICP::optimalRotation()
@@ -580,9 +581,14 @@ float GoICP::OuterBnB()
 	queueRot.push(initNodeRot);
 
 	// Keep exploring rotation space until convergence is achieved
-	long long count = 0;
+	curIter = 0;
 	while(1)
 	{
+		if (curIter == maxIters)
+		{
+			cout << "Reached max number of iterations" << endl;
+			break;
+		}
 		if(queueRot.empty())
 		{
 		  cout << "Rotation Queue Empty" << endl;
@@ -602,9 +608,9 @@ float GoICP::OuterBnB()
 			break;
 		}
 
-		if(count>0 && count%300 == 0)
+		if(curIter>0 && curIter%300 == 0)
 			printf("LB=%f  L=%d\n",nodeRotParent.lb,nodeRotParent.l);
-		count ++;
+		curIter ++;
 
 		// Subdivide rotation cube into octant subcubes and calculate upper and lower bounds for each
 		nodeRot.w = nodeRotParent.w/2;
@@ -751,6 +757,3 @@ float GoICP::Register()
 
 	return optError;
 }
-
-
-
