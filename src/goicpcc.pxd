@@ -38,6 +38,8 @@ cdef extern from "jly_goicp.hpp":
         float trimFraction
         int inlierNum
         bool doTrim
+        int maxIters
+        int curIter
     
         GoICP()
         float Register() except +
